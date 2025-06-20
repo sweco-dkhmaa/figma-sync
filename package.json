@@ -1,0 +1,25 @@
+{
+    "name": "figma-sync",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "packageManager": "yarn@4.9.1",
+    "scripts": {
+        "runner": "yarn run dotenvx run -f .env.local -f .env -- node --import=tsx",
+        "fetch-variables": "yarn runner src/fetchVariables.ts",
+        "generate": "yarn runner src/generateVariables.ts",
+        "tailwind": "yarn runner src/postProcessing/tailwind",
+        "all": "yarn run fetch-variables && yarn run generate && yarn run tailwind"
+    },
+    "devDependencies": {
+        "@dotenvx/dotenvx": "^1.44.2",
+        "@figma/rest-api-spec": "^0.31.0",
+        "@types/node": "^24.0.3",
+        "eslint": "^9.29.0",
+        "globals": "^16.2.0",
+        "prettier": "^3.5.3",
+        "tsx": "^4.20.3",
+        "typescript": "^5.8.3",
+        "typescript-eslint": "^8.34.0"
+    }
+}
