@@ -30,6 +30,10 @@ const ignoredNamespaces: string[] = ["--unit", "--spacing"];
     const cssContent: string[] = [];
 
     const themeDefinitions = await mapColorThemes(cssVariables);
+    themeDefinitions.tailwindThemePointers.forEach((val) => {
+        val.name = val.name.replace(/-+sweco-+sweco/, "-sweco");
+    });
+
     tailwindTheme.addVariables(
         new CssVariableCollection("Color theme pointers", themeDefinitions.tailwindThemePointers)
     );
@@ -65,8 +69,8 @@ const ignoredNamespaces: string[] = ["--unit", "--spacing"];
     const fontWeights = simpleMapper(cssVariables, {
         prefix: {
             "--primitive-type-weight": /--primitive-type-weight/,
-            "--semantic-type-body": /--semantic-type-body-[\w-]+-weight/,
-            "--semantic-type-heading": /--semantic-type-heading-[\w-]+-weight/
+            // "--semantic-type-body": /--semantic-type-body-[\w-]+-weight/,
+            // "--semantic-type-heading": /--semantic-type-heading-[\w-]+-weight/
         },
         tailwindNamespace: TailwindNamespace.fontWeight,
         collectionName: "Font Weights"
@@ -80,7 +84,8 @@ const ignoredNamespaces: string[] = ["--unit", "--spacing"];
             "--semantic-type-heading": /--semantic-type-heading-[\w-]+-line-height/
         },
         tailwindNamespace: TailwindNamespace.leading,
-        collectionName: "Line Heights"
+        collectionName: "Line Heights",
+        variableModifier: [numericToUnitModifier("", PxToRem)]
     });
     tailwindTheme.addVariables(lineHeights);
 
@@ -119,7 +124,7 @@ const ignoredNamespaces: string[] = ["--unit", "--spacing"];
             }
         );
         await fs.writeFile(
-            path.resolve(path.dirname(tailwindPath), "./missing-variables.css"),
+            path.resolve(tailwindPath, "./missing-variables.css"),
             missingVariables,
             "utf-8"
         );
