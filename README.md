@@ -11,6 +11,8 @@ Currently the following are in progress (or partly complete):
 ## Get started
 The project uses Yarn as package our package managers. If using Corepack the yarn version should self-adjust, otherwise run yarn `set version <version>`. Find the correct version in `package.json` under the `packageManager` field.
 
+Get started by running `yarn install`
+
 ## How to run
 *This is currently under revision and should be updated along with project structure.*
 
