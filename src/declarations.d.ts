@@ -5,6 +5,6 @@ declare namespace NodeJS {
         FIGMA_FILE_ID: string;
         SCSS_OUTPUT_DIR: string;
         CSS_OUTPUT_FILE: string;
-        TAILWIND_OUTPUT_FILE: string;
+        TAILWIND_OUTPUT_DIR: string;
     }
 }

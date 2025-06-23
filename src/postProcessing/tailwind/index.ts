@@ -14,7 +14,7 @@ import {
     wrapInRootDirective
 } from "./utils.ts";
 
-const tailwindPath = path.resolve(process.cwd(), process.env.TAILWIND_OUTPUT_FILE);
+const tailwindPath = path.resolve(process.cwd(), process.env.TAILWIND_OUTPUT_DIR);
 
 const ignoredNamespaces: string[] = ["--unit", "--spacing"];
 
@@ -26,7 +26,7 @@ const ignoredNamespaces: string[] = ["--unit", "--spacing"];
 
     ignoreNamespaces(ignoredNamespaces, cssVariables);
 
-    const tailwindTheme = new TailwindTheme();
+    const tailwindTheme = new TailwindTheme(Object.values(TailwindNamespace));
     const cssContent: string[] = [];
 
     const themeDefinitions = await mapColorThemes(cssVariables);
@@ -125,14 +125,20 @@ const ignoredNamespaces: string[] = ["--unit", "--spacing"];
         );
     }
 
-    let fileContent = [tailwindTheme.toString(), wrapInRootDirective(cssContent)].join(" ");
-    try {
-        fileContent = await prettier.format(fileContent, {
-            ...prettierconfig,
-            parser: "css"
-        });
-    } catch (error) {
-        console.error("Error formatting Tailwind theme file", error);
+    const content: Record<string, string> = {
+        "theme.css": tailwindTheme.toString(),
+        "variables.css": wrapInRootDirective(cssContent.join(" "))
+    };
+
+    for (const [name, fileContent] of Object.entries(content)) {
+        try {
+            let localContent = await prettier.format(fileContent, {
+                ...prettierconfig,
+                parser: "css"
+            });
+            await fs.writeFile(path.resolve(tailwindPath, name), localContent, "utf-8");
+        } catch (error) {
+            console.error(`Error formatting ${name}`, error);
+        }
     }
-    await fs.writeFile(path.resolve(tailwindPath), fileContent, "utf-8");
 })();
