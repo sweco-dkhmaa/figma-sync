@@ -55,11 +55,11 @@ const ignoredNamespaces: string[] = ["--unit", "--spacing"];
     tailwindTheme.addVariables(breakpoints);
 
     const fontSizing = simpleMapper(cssVariables, {
-        prefix: {
-            "--primitive-type-size": /--primitive-type-size/,
-            "--semantic-type-body": /--semantic-type-body-[\w-]+-size/,
-            "--semantic-type-heading": /--semantic-type-heading-[\w-]+-size/
-        },
+        prefix: [
+            ["--primitive-type-size", /--primitive-type-size/],
+            ["--semantic-type", /--semantic-type-body-[\w-]+-size/],
+            ["--semantic-type", /--semantic-type-heading-[\w-]+-size/]
+        ],
         tailwindNamespace: TailwindNamespace.text,
         collectionName: "Font Sizes",
         variableModifier: [numericToUnitModifier("rem", PxToRem)]
@@ -67,22 +67,22 @@ const ignoredNamespaces: string[] = ["--unit", "--spacing"];
     tailwindTheme.addVariables(fontSizing);
 
     const fontWeights = simpleMapper(cssVariables, {
-        prefix: {
-            "--primitive-type-weight": /--primitive-type-weight/,
-            // "--semantic-type-body": /--semantic-type-body-[\w-]+-weight/,
-            // "--semantic-type-heading": /--semantic-type-heading-[\w-]+-weight/
-        },
+        prefix: [
+            ["--primitive-type-weight", /--primitive-type-weight/],
+            ["--semantic-type", /--semantic-type-body-[\w-]+-weight/],
+            ["--semantic-type", /--semantic-type-heading-[\w-]+-weight/]
+        ],
         tailwindNamespace: TailwindNamespace.fontWeight,
         collectionName: "Font Weights"
     });
     tailwindTheme.addVariables(fontWeights);
 
     const lineHeights = simpleMapper(cssVariables, {
-        prefix: {
-            "--primitive-type-line-height": /--primitive-type-line-height/,
-            "--semantic-type-body": /--semantic-type-body-[\w-]+-line-height/,
-            "--semantic-type-heading": /--semantic-type-heading-[\w-]+-line-height/
-        },
+        prefix: [
+            ["--primitive-type-line-height", /--primitive-type-line-height/],
+            ["--semantic-type", /--semantic-type-body-[\w-]+-line-height/],
+            ["--semantic-type", /--semantic-type-heading-[\w-]+-line-height/]
+        ],
         tailwindNamespace: TailwindNamespace.leading,
         collectionName: "Line Heights",
         variableModifier: [numericToUnitModifier("", PxToRem)]

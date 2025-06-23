@@ -3,8 +3,8 @@ import { CssVariableCollection } from "./domain/cssVariableCollection.ts";
 import type { TailwindNamespace } from "./domain/tailwindTheme.ts";
 import { extractVariablesByPrefix } from "./utils.ts";
 
-type Prefix = string | string[] | PrefixObject;
-type PrefixObject = { [key: string]: RegExp };
+type Prefix = string | string[] | PrefixRegex;
+type PrefixRegex = [string | RegExp, string | RegExp][];
 export type CssVariableModifier = (variable: CssVariable) => void;
 
 type SimpleMapperOptions = {
@@ -14,16 +14,16 @@ type SimpleMapperOptions = {
     collectionName: string;
 };
 
-function isPrefixObject(prefix: Prefix): prefix is PrefixObject {
-    return typeof prefix === "object" && prefix !== null && !Array.isArray(prefix);
+function isPrefixRegex(prefix: Prefix): prefix is PrefixRegex {
+    return Array.isArray(prefix) && Array.isArray(prefix[0]);
 }
 
 export function simpleMapper(
     variables: CssVariable[],
     options: SimpleMapperOptions
 ): CssVariableCollection {
-    const preparedVariables: CssVariable[] = isPrefixObject(options.prefix)
-        ? mapObjectPrefixedVariables(options.prefix, variables, options.tailwindNamespace)
+    const preparedVariables: CssVariable[] = isPrefixRegex(options.prefix)
+        ? mapRegexPrefixedVariables(options.prefix, variables, options.tailwindNamespace)
         : mapPrefixedVariables(options.prefix, variables, options.tailwindNamespace);
 
     for (const modifier of options.variableModifier || []) {
@@ -54,13 +54,13 @@ function mapPrefixedVariables(
     return preparedVariables;
 }
 
-function mapObjectPrefixedVariables(
-    prefix: PrefixObject,
+function mapRegexPrefixedVariables(
+    prefix: PrefixRegex,
     variables: CssVariable[],
     tailwindNamespace: string
 ): CssVariable[] {
     const preparedVariables: CssVariable[] = [];
-    for (const [key, value] of Object.entries(prefix)) {
+    for (const [key, value] of prefix) {
         const extractedVariables = extractVariablesByPrefix(value, variables);
         if (extractedVariables.length === 0) continue;
 

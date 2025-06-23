@@ -38,12 +38,14 @@ export class CssVariable {
 
         return this.name;
     }
-    removePrefix(prefix: string): string {
+    removePrefix(prefix: string | RegExp): string {
         if (!prefix) return this.name;
-        this.name = this.name.replace(new RegExp(`^${prefix}`), "").trim();
+        this.name = this.name
+            .replace(prefix instanceof RegExp ? prefix : new RegExp(`^${prefix}`), "")
+            .trim();
         return this.name;
     }
-    replacePrefix(oldPrefix: string, newPrefix: string): string {
+    replacePrefix(oldPrefix: string | RegExp, newPrefix: string): string {
         this.removePrefix(oldPrefix);
         this.addPrefix(newPrefix);
         return this.name;
