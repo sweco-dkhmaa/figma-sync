@@ -5,11 +5,7 @@
     "type": "module",
     "packageManager": "yarn@4.9.1",
     "scripts": {
-        "runner": "yarn run dotenvx run -f .env.local -f .env -- node --import=tsx",
-        "fetch-variables": "yarn runner src/fetchVariables.ts",
-        "generate": "yarn runner src/generateVariables.ts",
-        "tailwind": "yarn runner src/postProcessing/tailwind",
-        "all": "yarn run fetch-variables && yarn run generate && yarn run tailwind"
+        "generate": "dotenvx run -f .env.local -f .env -- node --import=tsx src/index.ts"
     },
     "devDependencies": {
         "@dotenvx/dotenvx": "^1.44.2",

@@ -1,11 +1,4 @@
-import fs from "fs/promises";
-import path from "path";
-import prettier from "prettier";
-import { getPrettierConfig } from "./utils/prettierUtils.ts";
 import type { GetLocalVariablesResponse } from "@figma/rest-api-spec";
-
-const figmaVariableUrlTemplate = "https://api.figma.com/v1/files/{{fileId}}/variables/local";
-const fileIdPlaceholder = "{{fileId}}";
 
 function removeRemoteDefinitions(
     variableMeta: GetLocalVariablesResponse["meta"]
@@ -35,23 +28,11 @@ function removeRemoteDefinitions(
     };
 }
 
-async function saveToFile(filePath: string, content: object): Promise<void> {
-    try {
-        await fs.mkdir(path.dirname(filePath), { recursive: true });
-        let fileContent = JSON.stringify(content);
-        const prettierConfig = await getPrettierConfig();
-        fileContent = await prettier.format(fileContent, { ...prettierConfig, parser: "json" });
-        await fs.writeFile(filePath, fileContent, "utf-8");
-    } catch (error) {
-        throw new Error("Error writing to output directory", { cause: error });
-    }
-}
-
 async function fetchVariablesFromFigma(): Promise<GetLocalVariablesResponse> {
     let variableResponse: GetLocalVariablesResponse;
     try {
-        const figmaUrl = figmaVariableUrlTemplate.replace(
-            fileIdPlaceholder,
+        const figmaUrl = process.env.FIGMA_VARIABLE_API_URL.replace(
+            process.env.FIGMA_FILE_ID_PLACEHOLDER,
             process.env.FIGMA_FILE_ID
         );
         const response = await fetch(figmaUrl, {
@@ -75,14 +56,7 @@ async function fetchVariablesFromFigma(): Promise<GetLocalVariablesResponse> {
     return variableResponse;
 }
 
-(async () => {
-    console.log("Fetching variables from figma...");
-    let variableResponse = await fetchVariablesFromFigma();
-
-    variableResponse.meta = removeRemoteDefinitions(variableResponse.meta);
-
-    console.log("Variables fetched successfully. Writing to output directory...");
-    const outputPath = path.resolve(process.cwd(), process.env.VARIABLE_OUTPUT_FILE);
-    saveToFile(outputPath, variableResponse.meta);
-    console.log(`Variables written to ${outputPath}`);
-})();
+export async function getFigmaVariables(): Promise<GetLocalVariablesResponse["meta"]> {
+    const variableResponse = await fetchVariablesFromFigma();
+    return removeRemoteDefinitions(variableResponse.meta);
+}
