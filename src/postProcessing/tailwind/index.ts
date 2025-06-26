@@ -16,7 +16,7 @@ import {
 
 const tailwindPath = path.resolve(process.cwd(), process.env.TAILWIND_OUTPUT_DIR);
 
-const ignoredNamespaces: string[] = ["--unit", "--spacing"];
+const ignoredNamespaces: (string | RegExp)[] = ["--unit", /^--spacing-[\w]+-[\d]+/];
 
 (async () => {
     await fs.mkdir(path.dirname(tailwindPath), { recursive: true });
@@ -30,14 +30,15 @@ const ignoredNamespaces: string[] = ["--unit", "--spacing"];
     const cssContent: string[] = [];
 
     const themeDefinitions = await mapColorThemes(cssVariables);
-    themeDefinitions.tailwindThemePointers.forEach((val) => {
+    themeDefinitions.pointers.forEach((val) => {
         val.name = val.name.replace(/-+sweco-+sweco/, "-sweco");
     });
 
+
     tailwindTheme.addVariables(
-        new CssVariableCollection("Color theme pointers", themeDefinitions.tailwindThemePointers)
+        new CssVariableCollection("Color theme pointers", themeDefinitions.pointers)
     );
-    cssContent.push(...themeDefinitions.themes);
+    cssContent.push(...themeDefinitions.directives);
 
     const primitiveColors = simpleMapper(cssVariables, {
         prefix: "--primitive-color-",
@@ -112,6 +113,14 @@ const ignoredNamespaces: string[] = ["--unit", "--spacing"];
     });
     tailwindTheme.addVariables(borderWidths);
 
+    const spacing = simpleMapper(cssVariables, {
+        prefix: "--spacing-desktop-space",
+        tailwindNamespace: TailwindNamespace.spacing,
+        collectionName: "Spacing",
+        variableModifier: [numericToUnitModifier("px")]
+    });
+    tailwindTheme.addVariables(spacing);
+
     const prettierconfig = await getPrettierConfig();
 
     if (cssVariables.length > 0) {
@@ -132,7 +141,7 @@ const ignoredNamespaces: string[] = ["--unit", "--spacing"];
 
     const content: Record<string, string> = {
         "theme.css": tailwindTheme.toString(),
-        "variables.css": wrapInRootDirective(cssContent.join(" "))
+        "variables.css": cssContent.join(" ")
     };
 
     for (const [name, fileContent] of Object.entries(content)) {

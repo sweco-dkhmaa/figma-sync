@@ -1,6 +1,7 @@
 import { CssVariable } from "./domain/cssVariable.ts";
 import { TailwindNamespace } from "./domain/tailwindTheme.ts";
-import { extractVariablesByPrefix } from "./utils.ts";
+import type { CssDirectivesWithPointers } from "./types.ts";
+import { extractVariablesByPrefix, wrapInRootDirective } from "./utils.ts";
 
 const colorPrefix = "--semantic-color";
 const colorThemes = {
@@ -25,9 +26,7 @@ function createTheme(themeName: string, variableDeclarations: CssVariable[]): st
  * with theme-specific color variables. Each selector uses the theme name as its
  * data-theme value (e.g., [data-theme="light"], [data-theme="dark"]).
  */
-export async function mapColorThemes(
-    variables: CssVariable[]
-): Promise<{ themes: string[]; tailwindThemePointers: CssVariable[] }> {
+export async function mapColorThemes(variables: CssVariable[]): Promise<CssDirectivesWithPointers> {
     const generatedThemes = new Map<string, CssVariable[]>();
     const themeableVariables = extractVariablesByPrefix(colorPrefix, variables);
     for (const [themeName, themePrefix] of Object.entries(colorThemes)) {
@@ -49,6 +48,7 @@ export async function mapColorThemes(
     const themes = [...generatedThemes.entries()].map(([name, variables]) =>
         createTheme(name, variables)
     );
+    const rootThemeDirective = wrapInRootDirective(themes.join(" "));
 
     const tailwindThemePointers: CssVariable[] = [...generatedThemes.values()][0].map(
         (variable) => {
@@ -60,8 +60,8 @@ export async function mapColorThemes(
     );
 
     return {
-        themes: themes,
-        tailwindThemePointers: tailwindThemePointers
+        directives: [rootThemeDirective],
+        pointers: tailwindThemePointers
     };
 }
 

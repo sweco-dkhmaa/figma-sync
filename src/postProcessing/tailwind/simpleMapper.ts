@@ -8,8 +8,12 @@ type PrefixRegex = [string | RegExp, string | RegExp][];
 export type CssVariableModifier = (variable: CssVariable) => void;
 
 type SimpleMapperOptions = {
+    /**
+     * When using as array, the first element is used to select variables,
+     * the second element is used to replace the prefix in the variable name.
+     */
     prefix: Prefix;
-    tailwindNamespace: TailwindNamespace;
+    tailwindNamespace: TailwindNamespace | TailwindNamespace[];
     variableModifier?: CssVariableModifier[];
     collectionName: string;
 };
@@ -37,7 +41,7 @@ export function simpleMapper(
 function mapPrefixedVariables(
     prefix: string | string[],
     variables: CssVariable[],
-    tailwindNamespace: string
+    tailwindNamespace: string | string[]
 ): CssVariable[] {
     const preparedVariables: CssVariable[] = [];
     const prefixes = Array.isArray(prefix) ? prefix : [prefix];
@@ -46,9 +50,12 @@ function mapPrefixedVariables(
         const extractedVariables = extractVariablesByPrefix(prefix, variables);
         if (extractedVariables.length === 0) continue;
 
-        extractedVariables.forEach((variable) => variable.replacePrefix(prefix, tailwindNamespace));
-
-        preparedVariables.push(...extractedVariables);
+        const transformedVariables = transformAndNamespaceVariables(
+            extractedVariables,
+            tailwindNamespace,
+            prefix
+        );
+        preparedVariables.push(...transformedVariables);
     }
 
     return preparedVariables;
@@ -57,16 +64,36 @@ function mapPrefixedVariables(
 function mapRegexPrefixedVariables(
     prefix: PrefixRegex,
     variables: CssVariable[],
-    tailwindNamespace: string
+    tailwindNamespace: string | string[]
 ): CssVariable[] {
     const preparedVariables: CssVariable[] = [];
     for (const [key, value] of prefix) {
         const extractedVariables = extractVariablesByPrefix(value, variables);
         if (extractedVariables.length === 0) continue;
 
-        extractedVariables.forEach((variable) => variable.replacePrefix(key, tailwindNamespace));
-        preparedVariables.push(...extractedVariables);
+        const transformedVariables = transformAndNamespaceVariables(
+            extractedVariables,
+            tailwindNamespace,
+            key
+        );
+        preparedVariables.push(...transformedVariables);
     }
 
     return preparedVariables;
+}
+
+function* transformAndNamespaceVariables(
+    extractedVariables: CssVariable[],
+    tailwindNamespace: string | string[],
+    oldPrefix: string | RegExp
+) {
+    for (const variable of extractedVariables) {
+        for (const ns of typeof tailwindNamespace === "string"
+            ? [tailwindNamespace]
+            : tailwindNamespace) {
+            const variableClone = variable.clone();
+            variableClone.replacePrefix(oldPrefix, ns);
+            yield variableClone;
+        }
+    }
 }

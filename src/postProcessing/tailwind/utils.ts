@@ -23,12 +23,13 @@ export function extractVariablesByPrefix(
         return false;
     });
 
-    while (indexesToRemove.length > 0) {
-        const index = indexesToRemove.pop();
-        if (index !== undefined) {
-            variables.splice(index, 1);
-        }
-    }
+    // Remove the extracted variables from the original array
+    // while (indexesToRemove.length > 0) {
+    //     const index = indexesToRemove.pop();
+    //     if (index !== undefined) {
+    //         variables.splice(index, 1);
+    //     }
+    // }
 
     return extractedVariables;
 }
@@ -55,7 +56,7 @@ export async function getCssVariablesFromFile(filePath: string): Promise<CssVari
     return variableDeclarations;
 }
 
-export function ignoreNamespaces(namespaces: string[], variables: CssVariable[]): void {
+export function ignoreNamespaces(namespaces: (string | RegExp)[], variables: CssVariable[]): void {
     if (namespaces.length === 0) return;
 
     for (const namespace of namespaces) {

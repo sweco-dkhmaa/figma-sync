@@ -9,7 +9,9 @@ export const TailwindNamespace = {
     fontWeight: "--font-weight",
     leading: "--leading",
     radius: "--radius",
-    borderWidth: "--border-width" //Undocumented in Tailwind
+    borderWidth: "--border-width", //Undocumented in Tailwind
+    spacing: "--spacing",
+    insetShadow: "--inset-shadow",
 } as const;
 
 export type TailwindNamespace = (typeof TailwindNamespace)[keyof typeof TailwindNamespace];
