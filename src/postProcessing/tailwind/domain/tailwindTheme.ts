@@ -12,6 +12,11 @@ export const TailwindNamespace = {
     borderWidth: "--border-width", //Undocumented in Tailwind
     spacing: "--spacing",
     insetShadow: "--inset-shadow",
+    backgroundColor: "--background-color",
+    textColor: "--text-color",
+    borderColor: "--border-color",
+    ringColor: "--ring-color",
+    ringWidth: "--ring-width",
 } as const;
 
 export type TailwindNamespace = (typeof TailwindNamespace)[keyof typeof TailwindNamespace];

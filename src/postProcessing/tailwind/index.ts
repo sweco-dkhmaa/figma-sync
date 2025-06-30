@@ -5,12 +5,13 @@ import { getPrettierConfig } from "../../utils/prettierUtils.ts";
 import { CssVariableCollection } from "./domain/cssVariableCollection.ts";
 import { TailwindNamespace, TailwindTheme } from "./domain/tailwindTheme.ts";
 import { simpleMapper } from "./simpleMapper.ts";
-import { mapColorThemes } from "./themeMapper.ts";
 import {
+    extractVariablesByPrefix,
     getCssVariablesFromFile,
     ignoreNamespaces,
     numericToUnitModifier,
     PxToRem,
+    wrapInDataDirective,
     wrapInRootDirective
 } from "./utils.ts";
 
@@ -29,16 +30,115 @@ const ignoredNamespaces: (string | RegExp)[] = ["--unit", /^--spacing-[\w]+-[\d]
     const tailwindTheme = new TailwindTheme(Object.values(TailwindNamespace));
     const cssContent: string[] = [];
 
-    const themeDefinitions = await mapColorThemes(cssVariables);
-    themeDefinitions.pointers.forEach((val) => {
-        val.name = val.name.replace(/-+sweco-+sweco/, "-sweco");
-    });
+    // const themeDefinitions = await mapColorThemes(cssVariables);
+    // themeDefinitions.pointers.forEach((val) => {
+    //     val.name = val.name.replace(/-+sweco-+sweco/, "-sweco");
+    // });
 
+    let themePointers: CssVariableCollection | undefined = undefined;
+    for (const theme of ["light", "dark"]) {
+        const backgroundColorVariables = extractVariablesByPrefix(
+            `--semantic-color-${theme}-background`,
+            cssVariables
+        ).map((variable) => {
+            const variableClone = variable.clone();
+            variableClone.replacePrefix(
+                `--semantic-color-${theme}-background`,
+                "--semantic-color-background"
+            );
+            return variableClone;
+        });
 
-    tailwindTheme.addVariables(
-        new CssVariableCollection("Color theme pointers", themeDefinitions.pointers)
-    );
-    cssContent.push(...themeDefinitions.directives);
+        const textColorVariables = extractVariablesByPrefix(
+            [`--semantic-color-${theme}-text`, `--semantic-color-${theme}-icon`],
+            cssVariables
+        ).map((variable) => {
+            const variableClone = variable.clone();
+            variableClone.replacePrefix(
+                new RegExp(`--semantic-color-${theme}-(text)?`),
+                `--semantic-color-text`
+            );
+            return variableClone;
+        });
+
+        const borderColorVariables = extractVariablesByPrefix(
+            `--semantic-color-${theme}-border`,
+            cssVariables
+        ).map((variable) => {
+            const variableClone = variable.clone();
+            variableClone.replacePrefix(
+                `--semantic-color-${theme}-border`,
+                "--semantic-color-border"
+            );
+            return variableClone;
+        });
+
+        const genericColorVariables = extractVariablesByPrefix(
+            new RegExp(`--semantic-color-${theme}-+(?!background|text|icon|border)[^:]*`),
+            cssVariables
+        ).map((variable) => {
+            const variableClone = variable.clone();
+            variableClone.replacePrefix(`--semantic-color-${theme}`, "--semantic-color");
+            return variableClone;
+        });
+
+        let themeDirective = wrapInDataDirective(
+            [
+                ...backgroundColorVariables,
+                ...textColorVariables,
+                ...borderColorVariables,
+                ...genericColorVariables
+            ],
+            { dataAttr: "theme", value: theme }
+        );
+        themeDirective = wrapInRootDirective(themeDirective);
+        cssContent.push(themeDirective);
+
+        if (themePointers !== undefined) continue;
+
+        const backgroundThemePointers = [...backgroundColorVariables].map((variable) => {
+            const pointer = variable.clone();
+            pointer.replacePrefix("--semantic-color-background", TailwindNamespace.backgroundColor);
+            pointer.setVarValue(variable.name);
+            return pointer;
+        });
+
+        const textThemePointers = [...textColorVariables].map((variable) => {
+            const pointer = variable.clone();
+            pointer.replacePrefix(/--semantic-color-(text)?/, TailwindNamespace.textColor);
+            pointer.setVarValue(variable.name);
+            return pointer;
+        });
+
+        const borderThemePointers = [...borderColorVariables].flatMap((variable) => {
+            const pointer = variable.clone();
+            const ringPointer = variable.clone();
+            pointer.replacePrefix("--semantic-color-border", TailwindNamespace.borderColor);
+            ringPointer.replacePrefix("--semantic-color-border", TailwindNamespace.ringColor);
+            pointer.setVarValue(variable.name);
+            ringPointer.setVarValue(variable.name);
+            return [pointer, ringPointer];
+        });
+
+        const genericThemePointers = [...genericColorVariables].map((variable) => {
+            const pointer = variable.clone();
+            pointer.replacePrefix("--semantic-color", TailwindNamespace.color);
+            pointer.name = pointer.name
+                .replace("--sweco-sweco", "-sweco")
+                .replace("--special", "-special");
+            pointer.setVarValue(variable.name);
+            return pointer;
+        });
+
+        themePointers = new CssVariableCollection("Theme variable pointers", [
+            ...backgroundThemePointers,
+            ...textThemePointers,
+            ...borderThemePointers,
+            ...genericThemePointers
+        ]);
+    }
+
+    tailwindTheme.addVariables(themePointers ?? []);
 
     const primitiveColors = simpleMapper(cssVariables, {
         prefix: "--primitive-color-",
@@ -112,6 +212,13 @@ const ignoredNamespaces: (string | RegExp)[] = ["--unit", /^--spacing-[\w]+-[\d]
         variableModifier: [numericToUnitModifier("px")]
     });
     tailwindTheme.addVariables(borderWidths);
+
+    const ringWidths = [...borderWidths].map((variable) => {
+        const variableClone = variable.clone();
+        variableClone.replacePrefix(TailwindNamespace.borderWidth, TailwindNamespace.ringWidth);
+        return variableClone;
+    });
+    tailwindTheme.addVariables(new CssVariableCollection("Ring Widths", ringWidths));
 
     const spacing = simpleMapper(cssVariables, {
         prefix: "--spacing-desktop-space",

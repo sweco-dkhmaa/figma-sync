@@ -11,25 +11,13 @@ import type { CssVariableModifier } from "./simpleMapper.ts";
  * @returns An array of extracted variable names that match the prefix.
  */
 export function extractVariablesByPrefix(
-    prefix: string | RegExp,
+    prefix: string | RegExp | (string | RegExp)[],
     variables: CssVariable[]
 ): CssVariable[] {
-    const indexesToRemove: number[] = [];
-    const extractedVariables = variables.filter((line, index) => {
-        if (line.name.match(prefix)) {
-            indexesToRemove.push(index);
-            return true;
-        }
-        return false;
-    });
-
-    // Remove the extracted variables from the original array
-    // while (indexesToRemove.length > 0) {
-    //     const index = indexesToRemove.pop();
-    //     if (index !== undefined) {
-    //         variables.splice(index, 1);
-    //     }
-    // }
+    const prefixes = Array.isArray(prefix) ? prefix : [prefix];
+    const extractedVariables = variables
+        .filter((line) => prefixes.some((p) => line.name.match(p)))
+        .map((x) => x.clone());
 
     return extractedVariables;
 }
@@ -86,4 +74,12 @@ export function numericToUnitModifier(
 
 export function wrapInRootDirective(content: string | string[]): string {
     return `:root { ${(typeof content === "string" ? [content] : content).join(" ")} }`;
+}
+
+export function wrapInDataDirective(
+    variables: CssVariable[],
+    options: { dataAttr: string; value: string }
+): string {
+    const variableDeclarations = variables.map((variable) => variable.toString()).join("\n");
+    return `[data-${options.dataAttr}='${options.value}'] {\n ${variableDeclarations} \n}`;
 }

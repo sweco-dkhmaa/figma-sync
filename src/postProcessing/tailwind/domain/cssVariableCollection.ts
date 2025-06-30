@@ -9,8 +9,8 @@ export class CssVariableCollection implements Iterable<CssVariable> {
         this.name = name;
     }
 
-    add(variable: CssVariable): void {
-        this.variables.push(variable);
+    add(variables: CssVariable | CssVariable[]): void {
+        this.variables.push(...(Array.isArray(variables) ? variables : [variables]));
     }
 
     remove(variable: CssVariable): void {
@@ -19,6 +19,10 @@ export class CssVariableCollection implements Iterable<CssVariable> {
 
     clear(): void {
         this.variables = [];
+    }
+
+    toString(): string {
+        return this.variables.map((variable) => variable.toString()).join("\n");
     }
 
     [Symbol.iterator](): Iterator<CssVariable> {

@@ -67,14 +67,14 @@ function mapRegexPrefixedVariables(
     tailwindNamespace: string | string[]
 ): CssVariable[] {
     const preparedVariables: CssVariable[] = [];
-    for (const [key, value] of prefix) {
-        const extractedVariables = extractVariablesByPrefix(value, variables);
+    for (const [replacer, selector] of prefix) {
+        const extractedVariables = extractVariablesByPrefix(selector, variables);
         if (extractedVariables.length === 0) continue;
 
         const transformedVariables = transformAndNamespaceVariables(
             extractedVariables,
             tailwindNamespace,
-            key
+            replacer
         );
         preparedVariables.push(...transformedVariables);
     }
