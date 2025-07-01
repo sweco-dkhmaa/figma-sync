@@ -4,7 +4,7 @@ This project aims to sync variables from Figma file into various different forma
 The general through is for this repo to be as small as possible. It should contain just what is needed for syncing Figma variables to a CSS stylesheet. It's then up to each project/consumer to transform them into something that satisfies their needs.
 
 ## Get started
-The project uses Yarn as package our package managers. If using Corepack the yarn version should self-adjust, otherwise run yarn `set version <version>`. Find the correct version in `package.json` under the `packageManager` field.
+The project uses Yarn as package our package managers. If using Corepack the yarn version should self-adjust, otherwise run `yarn set version <version>`. Find the correct version in `package.json` under the `packageManager` field.
 
 ## How to run
 All scripts run using TSX as node runner, to avoid compiling. They use dotenvx to inject `.env` and `.env.local`.
@@ -21,6 +21,7 @@ The `.env` file contains all variables used in the project. To override any of t
 | FIGMA_FILE_ID_PLACEHOLDER | The placeholder from `FIGMA_VARIABLE_API_URL` used to search and replace with `FIGMA_FILE_ID` |
 
 ### Scripts
+Start by running `yarn install` before any scripts is executed.
 
 Currently the project has 1 script:
 | Script | Description |
