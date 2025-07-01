@@ -24,16 +24,6 @@ jobs:
           FIGMA_ACCESS_TOKEN: ${{ secrets.FIGMA_ACCESS_TOKEN }}
           FIGMA_FILE_ID: ${{ vars.FIGMA_FILE_ID }}
           CSS_OUTPUT_FILE: ${{ vars.CSS_OUTPUT_FILE }}
-      - name: Keep only CSS_OUTPUT_FILE in branch
-        run: |
-          FILE_PATH="${{ vars.CSS_OUTPUT_FILE }}"
-          BASENAME=$(basename "$FILE_PATH")
-          mv "$FILE_PATH" "$BASENAME"
-          git rm -rf .
-          git checkout HEAD -- "$BASENAME"
-          git add "$BASENAME"
-          git commit -m "Move $FILE_PATH to root and keep only $BASENAME in branch"
-        shell: bash
       - name: Push branch to origin
         run: |
           BRANCH_NAME=$(git branch --show-current)
