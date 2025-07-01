@@ -26,7 +26,7 @@ jobs:
           CSS_OUTPUT_FILE: ${{ vars.CSS_OUTPUT_FILE }}
       - name: Keep only CSS_OUTPUT_FILE in branch
         run: |
-          FILE_PATH="${{ steps.dotenv.outputs.css_output_file }}"
+          FILE_PATH="${{ vars.CSS_OUTPUT_FILE }}"
           git rm -rf .
           git checkout HEAD -- "$FILE_PATH"
           git add "$FILE_PATH"
