@@ -1,4 +1,5 @@
 .env.local
 .yarn
-./lib
+lib/**
+output/**
 node_modules
