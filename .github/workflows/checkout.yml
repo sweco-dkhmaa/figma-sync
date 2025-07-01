@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Enable and Prepare Corepack
+        run: corepack enable
       - name: Install dependencies
         run: yarn install
       - name: Create new branch with UTC timestamp
