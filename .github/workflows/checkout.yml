@@ -27,10 +27,12 @@ jobs:
       - name: Keep only CSS_OUTPUT_FILE in branch
         run: |
           FILE_PATH="${{ vars.CSS_OUTPUT_FILE }}"
+          BASENAME=$(basename "$FILE_PATH")
+          mv "$FILE_PATH" "$BASENAME"
           git rm -rf .
-          git checkout HEAD -- "$FILE_PATH"
-          git add "$FILE_PATH"
-          git commit -m "Keep only $FILE_PATH in branch"
+          git checkout HEAD -- "$BASENAME"
+          git add "$BASENAME"
+          git commit -m "Move $FILE_PATH to root and keep only $BASENAME in branch"
         shell: bash
       - name: Push branch to origin
         run: |
