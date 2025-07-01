@@ -1,0 +1,37 @@
+name: Checkout Repository
+
+on:
+  workflow_dispatch:
+
+jobs:
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: yarn install
+      - name: Create new branch with UTC timestamp
+        run: |
+          BRANCH_NAME=variables_$(date -u +"%Y%m%d%H%M%S")
+          git checkout -b "$BRANCH_NAME"
+        shell: bash
+      - name: Generate CSS Variables
+        run: yarn generate
+        env:
+          FIGMA_ACCESS_TOKEN: ${{ secrets.FIGMA_ACCESS_TOKEN }}
+          FIGMA_FILE_ID: ${{ vars.FIGMA_FILE_ID }}
+          CSS_OUTPUT_FILE: ${{ vars.CSS_OUTPUT_FILE }}
+      - name: Keep only CSS_OUTPUT_FILE in branch
+        run: |
+          FILE_PATH="${{ steps.dotenv.outputs.css_output_file }}"
+          git rm -rf .
+          git checkout HEAD -- "$FILE_PATH"
+          git add "$FILE_PATH"
+          git commit -m "Keep only $FILE_PATH in branch"
+        shell: bash
+      - name: Push branch to origin
+        run: |
+          BRANCH_NAME=$(git branch --show-current)
+          git push origin "$BRANCH_NAME"
+        shell: bash
